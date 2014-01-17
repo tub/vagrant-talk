@@ -1,8 +1,8 @@
 class: center, middle
 
-# Solr &amp; Content Recommendation
+# Vagrant
 
-![Solr Logo](solr_logo_rgb.png)
+![Solr Logo](http://www.vagrantup.com/images/vagrant_header_background-482a12a7.png)
 
 Toby Cole, Technical Architect, Semantico
 
@@ -10,97 +10,76 @@ Toby Cole, Technical Architect, Semantico
 
 # What am I talking about?
 
-* What are Lucene &amp; Solr?
-* Tokenization, terms and term-filters.
-* Relevance - tf-idf algoithm
-* Solr's API
-* More Like This
-* Sharded More Like This (hopefully)
+* What is Vagrant
+* Installing 
+* Starting
+* Configuring
+* Use-cases
 
 ---
 
-# What are Solr &amp; Lucene?
+# What is vagrant?
 
-## Lucene
-* Java full-text search library
-* Started in '99
-* Documents, fields, text.
-
-## Solr
-* REST API on top of Lucene
-* Adds field-types & schema
-* Nice client library, SolrJ
+* VM management layer
+* Designed for devs
+* Portable, disposable images
+* Multiple VM providers (virtualbox, VMware, AWS…)
+* Shareable config (can be checked into projects!)
 
 ---
 
 
-# Tokenization &amp; terms
-Given a sentence:
+# Installation (easy way)
 
-`An ASCII representation of Miley Cyrus' twerking face ;P`
+    ➜  ~  brew cask install vagrant
+    
+---
+    
+# Installation (hard way)
 
-tokenization is splitting into indexable chunks
-
-`An` `ASCII` `representation` `of` `Miley` `Cyrus` `twerking` `face` `P`
-
-term-filters can be used to modify these terms before they're indexed
-
-lowercasing:
-
-`an` `ascii` `representation` `of` `miley` `cyrus` `twerking` `face` `p`
-
-stemming:
-
-`an` `ascii` `represent` `of` `milei` `cyru` `twerk` `face` `p`
-
-# tf-idf
-
-See [Lucene's TFIDF Javadoc](http://lucene.apache.org/core/4_4_0/core/org/apache/lucene/search/similarities/TFIDFSimilarity.html) for a good description
-
-## Term Frequency
-
-Many occurences in one document == **relevant to document**
-
-## Inverse Document Frequency
-
-* Rare terms == **relevant**
-* Common terms == **not relevant**
-
-## Field length
-
-* Shorter == **better**
-
-(This is a massive oversimplification, deal with it.)
+![Download installer](download.png)
 
 ---
-# Solr's API - Input
-Various formats available:
 
-* XML
-* JSON
-* CSV
-* Streaming binary content + Tika (Doc, PDFs etc)
-* Database Import
+# First VM
 
----
-# Solr's API - Input XML
-
-Over HTTP - 
-`POST /update`
-
-```xml
-<add>
-  <doc>
-    <field name="employeeId">05991</field>
-    <field name="office">Bridgewater</field>
-    <field name="skills">Perl</field>
-    <field name="skills">Java</field>
-  </doc>
-  [<doc> ... </doc>[<doc> ... </doc>]]
-</add>
-```
-
-
-more details - [Solr Update docs](http://wiki.apache.org/solr/UpdateXmlMessages)
+    ➜  ~  vagrant init precise32 http://files.vagrantup.com/precise32.box
+    ➜  ~  vagrant up
+    
+Lets go!
 
 ---
+
+# More commands
+
+    ➜  ~  vagrant ssh
+    ➜  ~  vagrant destroy
+
+---
+
+# Don't 'rm -rf /'
+
+* Current directory is mounted on /vagrant
+* Handy since you have a known path to your project
+* It's **writable**
+
+---
+
+# Config is ruby
+
+    ➜  ~  cat Vagrantfile
+    Vagrant.configure("2") do |config|
+        config.vm.box = "precise32"
+    end
+
+---
+
+# Provisioning
+
+* Many built in providers
+   * shell scripts
+   * puppet
+   * ansible
+   * chef
+   * docker
+   * salt
