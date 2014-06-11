@@ -76,6 +76,7 @@ Lets go!
 
 # Provisioning
 
+* Get stuff installed when you `vagrant up`
 * Many built in providers
    * shell scripts
    * puppet
@@ -83,3 +84,51 @@ Lets go!
    * chef
    * docker
    * salt
+   
+---
+
+# Shell script example
+
+## bootstrap.sh
+
+    #!/usr/bin/env bash
+
+    apt-get update
+    apt-get install -y apache2
+    rm -rf /var/www
+    ln -fs /vagrant /var/www
+    
+## Vagrantfile
+
+    Vagrant.configure("2") do |config|
+      config.vm.box = "precise32"
+      config.vm.provision :shell, :path => "bootstrap.sh"
+    end
+    
+## Go
+    vagrant reload --provision
+    
+Not yet accessible outside of the VM…
+
+---
+
+# Port forwarding
+One line in your Vagrantfile
+
+    config.vm.network :forwarded_port, host: 4567, guest: 80
+
+Then a `vagrant reload`
+
+---
+
+# Other stuff!
+* Multiple VMs in one file
+* LXC containers! - ask Nico
+* Easy per-dev puppetmasters with Ansible & Vagrant - ask RobW
+* Plugins - most components of vagrant are pluggable, written in Ruby. 
+* See [http://docs.vagrantup.com](http://docs.vagrantup.com), very nice docs.
+* 
+---
+
+class: center, middle
+# Questions‽
