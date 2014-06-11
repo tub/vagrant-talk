@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Intro to Solr &amp; Recommendation</title>
+    <title>Vagrant VMs</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style type="text/css">
       /* Slideshow styles */
@@ -10,7 +10,7 @@
 
       body {
         font-family: 'Droid Serif';
-        font-size: 20px;
+        font-size: 25px;
       }
       h1, h2, h3 {
         font-family: 'Yanone Kaffeesatz';
@@ -19,7 +19,10 @@
       }
 
       .middle img{
-	width: 50%;
+	width: 80%;
+      }
+      .install img{
+        width: 60%;
       }
 
       code {
@@ -39,12 +42,11 @@
   </head>
   <body>
     <textarea id="source">
-
 class: center, middle
 
-![Solr Logo](solr_logo_rgb.png)
+# Vagrant
 
-# Solr &amp; Content Recommendation
+![Solr Logo](http://www.vagrantup.com/images/vagrant_header_background-482a12a7.png)
 
 Toby Cole, Technical Architect, Semantico
 
@@ -52,185 +54,137 @@ Toby Cole, Technical Architect, Semantico
 
 # What am I talking about?
 
-* What are Lucene &amp; Solr?
-* Tokenization, terms and term-filters.
-* Relevance - tf-idf algoithm
-* Solr's API
-* SolrJ
----
-
-# What are Solr &amp; Lucene?
-
-Both open source Apache projects.
-
-## Lucene
-* Java full-text search library
-* Started in '99
-* Documents, fields, text.
-
-## Solr
-* REST API on top of Lucene
-* Adds typing &amp; schemas
-* Nice client library, SolrJ
+* What is Vagrant
+* Installing 
+* Starting
+* Configuring
 
 ---
 
+# Disclaimer
 
-# Tokenization &amp; terms
-Given a sentence:
-
-`An ASCII representation of Miley Cyrus' twerking face ;P`
-
-tokenization is splitting into indexable chunks
-
-`An` `ASCII` `representation` `of` `Miley` `Cyrus` `twerking` `face` `P`
-
-term-filters can be used to modify these terms before they're indexed
-
-lowercasing:
-
-`an` `ascii` `representation` `of` `miley` `cyrus` `twerking` `face` `p`
-
-stemming:
-
-`an` `ascii` `represent` `of` `milei` `cyru` `twerk` `face` `p`
+I've not tested any of the examples here, wish me luck.
 
 ---
 
-# tf-idf
+# What is vagrant?
 
-See [Lucene's TFIDF Javadoc](http://lucene.apache.org/core/4_4_0/core/org/apache/lucene/search/similarities/TFIDFSimilarity.html) for a good description
-
-## Term Frequency
-
-Many occurences in one document == **relevant to document**
-
-## Inverse Document Frequency
-
-* Rare terms == **relevant**
-* Common terms == **not relevant**
-
-## Field length
-
-* Shorter == **better**
-
-(This is a massive oversimplification, deal with it.)
+* VM management layer
+* Designed for devs
+* Portable, disposable images
+* Multiple VM providers (virtualbox, VMware, AWS…)
+* Shareable config (can be checked into projects!)
 
 ---
-# Solr's API - Input
-Various formats available:
-
-* XML
-* JSON
-* CSV
-* Streaming binary content + Tika (Doc, PDFs etc)
-* Database Import
-
----
-# Solr's API - Input XML
-
-Over HTTP - 
-`POST /update`
-
-```xml
-<add>
-  <doc>
-    <field name="employeeId">05991</field>
-    <field name="office">Bridgewater</field>
-    <field name="skills">Perl</field>
-    <field name="skills">Java</field>
-  </doc>
-  [<doc> … </doc>
-  …
-  <doc> … </doc>]
-</add>
-```
-
-more details - [Solr Update docs](http://wiki.apache.org/solr/UpdateXmlMessages)
-
----
-# Solr's API - Output XML
-
-Let's have a look
-
-* [Hams](http://localhost:8081/solr/select?q=*:*)
-* [Cheeses](http://localhost:8082/solr/select?q=*:*)
-
-(or in JSON)
-
-* [Hams](http://localhost:8081/solr/select?q=*:*&wt=json)
-* [Cheeses](http://localhost:8082/solr/select?q=*:*&wt=json)
 
 
----
-# SolrJ
+# Installation (easy way)
 
-* Nice Java API for accessing Solr.
-* Can use embedded solr (no network overhead, but no distributed search).
-* Annotated POJOs for indexing and retrieval
-
-```java
-import org.apache.solr.client.solrj.beans.Field;
-
-public class Cheese {
+    ➜  ~  brew cask install vagrant
     
-    @Field
-    public String id;
-    @Field
-    public String name;
-    @Field
-    public String description;
+---
+class: install
+    
+# Installation (hard way)
 
-}
-```
+![Download installer](download.png)
 
 ---
 
-# SolrJ indexing
-```java
-  SolrServer solr = new HttpSolrServer("http://localhost:8081/solr");
+# First VM
 
-  List<Cheese> cheeses;
-  //add cheeses
-  server.addBeans(cheeses);
-```
+    ➜  ~  vagrant init precise32 http://files.vagrantup.com/precise32.box
+    ➜  ~  vagrant up
+    
+Lets go!
 
 ---
 
-# SolrJ querying
+# More commands
 
-```java
-  SolrServer solr = new HttpSolrServer("http://localhost:8081/solr");
-
-  SolrQuery query = new SolrQuery("description:stringy");
-  QueryResponse rsp = server.query( query );
-  //cheesy beans
-  List<Cheese> beans = rsp.getBeans(Cheese.class);
-```
----
-# Solr MLT - 'More like this'
-
-* Analyses a field within a document to find interesting terms
- * Remember *Inverse Document Frequency* 
- * 'interesting' == rare throughout corpus of docs, common within doc
-* Searches index for documents with those terms
-* Optionally applies boosts (expensive)
-
-[Example - hopefully](http://cstsemscol01a.test.semantico.net:20101/select?q=bacon&fl=dc_title,dc_description&qt=mlt&mlt.fl=dc_description&mlt.interestingTerms=details&mlt.boost=true)
+    ➜  ~  vagrant ssh
+    ➜  ~  vagrant destroy
 
 ---
+
+# Don't 'rm -rf /'
+
+* Current directory is mounted on /vagrant
+* Handy since you have a known path to your project
+* It's **writable**
+
+---
+
+# Config is ruby
+
+    ➜  ~  cat Vagrantfile
+    Vagrant.configure("2") do |config|
+        config.vm.box = "precise32"
+    end
+
+---
+
+# Provisioning
+
+* Get stuff installed when you `vagrant up`
+* Many built in providers
+   * shell scripts
+   * puppet
+   * ansible
+   * chef
+   * docker
+   * salt
+   
+---
+
+# Shell script example
+
+## bootdstrap.sh
+
+    #!/usr/bin/env bash
+
+    apt-get update
+    apt-get install -y apache2
+    rm -rf /var/www
+    ln -fs /vagrant /var/www
+    
+## Vagrantfile
+
+    Vagrant.configure("2") do |config|
+      config.vm.box = "precise32"
+      config.vm.provision :shell, :path => "bootstrap.sh"
+    end
+    
+## Go
+    vagrant reload --provision
+    
+Not yet accessible outside of the VM…
+
+---
+
+# Port forwarding
+One line in your Vagrantfile
+
+    config.vm.network :forwarded_port, host: 4567, guest: 80
+
+Then a `vagrant reload`
+
+---
+
+# Other stuff!
+* Multiple VMs in one file
+* LXC containers! - ask Nico
+* Easy per-dev puppetmasters with Ansible &amp; Vagrant - ask RobW
+* Plugins - most components of vagrant are pluggable, written in Ruby. 
+* See [http://docs.vagrantup.com](http://docs.vagrantup.com), very nice docs.
+* Slides up on labs.semantico.com soon
+---
+
 class: center, middle
+# Questions‽
+![Spangle](spangle.jpg)
 
-#Questions?
-
----
-class: center, middle
-
-#Cheers!
-
-@tubfun
-
-@semantico
+(p.s. this is my cat)
 
     </textarea>
     <script src="http://gnab.github.io/remark/downloads/remark-0.5.4.min.js" type="text/javascript">
@@ -238,6 +192,7 @@ class: center, middle
     <script type="text/javascript">
 
       var slideshow = remark.create({
+          ratio: '16:9',
           highlightStyle: 'monokai',
           highlightLanguage: 'remark'
         }) ;
